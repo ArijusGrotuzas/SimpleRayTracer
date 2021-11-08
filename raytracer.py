@@ -1,12 +1,38 @@
+""" For navigating system files """
 import os
 import random
+import subprocess
 
-import matplotlib.pyplot as plt
-import numpy as np
-from PIL import Image
+import matplotlib.pyplot as plt  # For saving images
+import numpy as np  # For converting textures into arrays
+from PIL import Image  # For opening images
 
-from definitions import TEXTURES_PATH, RESULTS_PATH
+from definitions import TEXTURES_PATH, RESULTS_PATH, FILEBROWSER_PATH
 from objects import *
+
+
+# Opens windows explorer's path
+def explore(path):
+    # explorer would choke on forward slashes
+    path = os.path.normpath(path)
+
+    if os.path.isdir(path):
+        subprocess.run([FILEBROWSER_PATH, path])
+    elif os.path.isfile(path):
+        subprocess.run([FILEBROWSER_PATH, '/select,', os.path.normpath(path)])
+
+
+# Clears console
+def clearConsole():
+    command = 'clear'
+    if os.name in ('nt', 'dos'):  # If Machine is running on Windows, use cls
+        command = 'cls'
+    os.system(command)
+
+
+# Convert degrees to radians
+def deg2rad(degree):
+    return (degree * math.pi) / 180
 
 
 # Calculate a value of a shadow given number of samples. The returned value is averaged
@@ -80,7 +106,8 @@ def main():
 
     mat = Material(Color(0.1, 0.1, 0.1), Color(0.6, 0.6, 0.6), Color.white(), 100, earth_tex)
 
-    objects = [Sphere(Vector3(0, 0, -1), Vector3.zeros(), 1, mat), Plane(Vector3(0, -1, 0), Vector3.zeros(), mat)]
+    objects = [Sphere(Vector3(0, 0, -1), Vector3(0, deg2rad(250), 0), 1, mat)]
+    # Plane(Vector3(0, -1, 0), Vector3.zeros(), mat)]
 
     """Calculate the aspect ratio of the view plane based on the background image"""
     height, width, channels = back.shape
@@ -88,7 +115,8 @@ def main():
     aspect_ratio = float(width) / height
     screen = (-1, 1 / aspect_ratio, 1, -1 / aspect_ratio)  # left, top, right, bottom
 
-    image = back
+    image = np.copy(back)
+    image.flags.writeable = True
 
     """ For every pixel along a view plane shoot a ray and trace back the color"""
     for i, y in enumerate(np.linspace(screen[1], screen[3], height)):
@@ -132,10 +160,15 @@ def main():
 
             # Get the resulting color with shadow
             col = Color.subtract(col, Color(shadow_col, shadow_col, shadow_col))
-            
+
             image[i, j] = (col.r * 255, col.g * 255, col.b * 255)
 
-    plt.imsave(os.path.join(RESULTS_PATH, 'image2.png'), image)
+        # print("progress: %d/%d" % (i + 1, height))
+        # clearConsole()
+
+    plt.imsave(os.path.join(RESULTS_PATH, 'image3.png'), image)
+    print(f'Saved to {os.path.join(RESULTS_PATH, "image3.png")}')
+    explore(RESULTS_PATH)
 
 
 if __name__ == '__main__':

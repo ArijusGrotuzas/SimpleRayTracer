@@ -13,6 +13,24 @@ class Transform:
         rotated_point = Matrix3X3.mulVector3(mat, point)
         return rotated_point
 
+    def rotate(self, point):
+        axis = Vector3.zeros()
+        theta = 0
+
+        if self.rotation.x > 0:
+            axis.x = 1
+            theta = self.rotation.x
+        elif self.rotation.y > 0:
+            axis.y = 1
+            theta = self.rotation.y
+        elif self.rotation.z > 0:
+            axis.z = 1
+            theta = self.rotation.z
+
+        mat = Matrix3X3.angleAxis3x3(theta, axis)
+
+        return Matrix3X3.mulVector3(mat, point)
+
 
 class Shape(Transform):
     def __init__(self, position, rotation, material):
@@ -30,7 +48,8 @@ class Shape(Transform):
 
         # diffuse
         illumination = Color.add(Color.scalar_multiply(Vector3.dot(light_direction, normal),
-                                                       Color.multiply(self.material.diffuse, light.diffuse)), illumination)
+                                                       Color.multiply(self.material.diffuse, light.diffuse)),
+                                 illumination)
 
         # specular
         view_direction = Vector3.normalize(Vector3.subtract(camera_position, intersection))
@@ -46,6 +65,8 @@ class Sphere(Shape):
     def __init__(self, position, rotation, radius, material):
         super().__init__(position, rotation, material)
         self.radius = radius
+        self.pole = self.rotate(Vector3(0, 1, 0))
+        self.equator = self.rotate(Vector3(-1, 0, 0))
 
     def calculate_intersection(self, ray):
         # 2 * (d x O - c)
@@ -72,17 +93,15 @@ class Sphere(Shape):
 
     # Returns a u, v coordinates given a point on a sphere
     def spherical_map(self, intersection):
-        pole = Vector3(0, 1, 0)
-        equator = Vector3(-1, 0, 0)
 
         normal = self.normal(intersection)
 
-        phi = math.acos(Vector3.dot(pole, normal))
+        phi = math.acos(Vector3.dot(self.pole, normal))
         v = phi / math.pi
 
-        theta = (math.acos(Vector3.dot(equator, normal) / math.sin(phi))) / (2 * math.pi)
+        theta = (math.acos(Vector3.dot(self.equator, normal) / math.sin(phi))) / (2 * math.pi)
 
-        if Vector3.dot(normal, Vector3.cross(pole, equator)) > 0:
+        if Vector3.dot(normal, Vector3.cross(self.pole, self.equator)) > 0:
             u = theta
         else:
             u = 1 - theta
