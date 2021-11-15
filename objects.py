@@ -4,40 +4,22 @@ from geometry import *
 
 
 class Transform:
-    def __init__(self, position, rotation):
+    def __init__(self, position, rotation, scale):
         self.position = position
         self.rotation = rotation
-
-    def rotateZ(self, point):
-        mat = Matrix3X3.angleAxis3x3(self.rotation.z, Vector3(0, 0, 1))
-        rotated_point = Matrix3X3.mulVector3(mat, point)
-        return rotated_point
-
-    def rotate(self, point):
-        axis = Vector3.zeros()
-        theta = 0
-
-        if self.rotation.x > 0:
-            axis.x = 1
-            theta = self.rotation.x
-        elif self.rotation.y > 0:
-            axis.y = 1
-            theta = self.rotation.y
-        elif self.rotation.z > 0:
-            axis.z = 1
-            theta = self.rotation.z
-
-        mat = Matrix3X3.angleAxis3x3(theta, axis)
-
-        return Matrix3X3.mulVector3(mat, point)
+        self.scale = scale
+        self.modelMat = Matrix4X4.mulMat(Matrix4X4.translationMat(position),
+                                         Matrix4X4.mulMat(Matrix4X4.rotationMat(rotation.y, Vector3(0, 1, 0)),
+                                                          Matrix4X4.scalingMat(scale)))
 
 
 class Shape(Transform):
     def __init__(self, position, rotation, material):
-        super().__init__(position, rotation)
+        super().__init__(position, rotation, Vector3.zeros())
         self.material = material
 
     def phong(self, light, camera_position, intersection, normal):
+        # attenuation = 1 / Vector3.magnitude(Vector3.subtract(light.position, intersection))
         light_direction = Vector3.normalize(Vector3.subtract(light.position, intersection))
 
         # RGB
@@ -58,6 +40,8 @@ class Shape(Transform):
         illumination = Color.add(Color.scalar_multiply(Vector3.dot(normal, H) ** (
                 self.material.shininess / 4), Color.multiply(self.material.specular, light.specular)), illumination)
 
+        # illumination = Color.scalar_multiply(attenuation, illumination)
+
         return illumination
 
 
@@ -65,8 +49,8 @@ class Sphere(Shape):
     def __init__(self, position, rotation, radius, material):
         super().__init__(position, rotation, material)
         self.radius = radius
-        self.pole = self.rotate(Vector3(0, 1, 0))
-        self.equator = self.rotate(Vector3(-1, 0, 0))
+        self.pole = Vector3(0, 1, 0)
+        self.equator = Vector3(-1, 0, 0)
 
     def calculate_intersection(self, ray):
         # 2 * (d x O - c)
@@ -134,7 +118,7 @@ class Sphere(Shape):
 class Plane(Shape):
     def __init__(self, position, rotation, material):
         super().__init__(position, rotation, material)
-        self.surface_normal = Vector3.normalize(self.rotateZ(Vector3(0, 1, 0)))
+        self.surface_normal = Vector3.normalize(Vector3(0, 1, 0))
 
     def calculate_intersection(self, ray):
         denominator = Vector3.dot(Vector3.normalize(ray.direction), self.surface_normal)
@@ -162,7 +146,7 @@ class Plane(Shape):
 
 class Light(Transform):
     def __init__(self, position, rotation):
-        super().__init__(position, rotation)
+        super().__init__(position, rotation, Vector3.zeros())
 
 
 class PointLight(Light):
@@ -183,9 +167,13 @@ class DirectionalLight(Light):
 
 
 class Camera(Transform):
-    def __init__(self, position, rotation, fov):
-        super().__init__(position, rotation)
-        self.fov = fov
+    def __init__(self, position, rotation, width, height, fov):
+        super().__init__(position, rotation, Vector3(fov, fov, 1))
+        self.center = Matrix4X4.mulVector3(self.modelMat, Vector3.zeros())
+        self.left = Vector3(-1, 0, -1)
+        self.right = Vector3(1, 0, -1)
+        self.top = Vector3(0, 1 / (float(width) / height), -1)
+        self.bottom = Vector3(0, -1 / (float(width) / height), -1)
 
 
 """-------------------------------------------Material---------------------------------------------------------------"""

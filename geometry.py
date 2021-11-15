@@ -31,7 +31,7 @@ class Tuple:
 
     @staticmethod
     def dot(a, b):
-        return a.x * b.x + a.y * b.y + a.z * b.z
+        return a.x * b.x + a.y * b.y + a.z * b.z  # + a.w * b.w
 
     @staticmethod
     def cross(a, b):
@@ -58,9 +58,9 @@ class Point(Tuple):
 
 
 class Vector3(Tuple):
-    def __init__(self, x, y, z):
+    def __init__(self, x, y, z, w=1):
         super().__init__(x, y, z)
-        self.w = 0
+        self.w = w
 
     @staticmethod
     def zeros():
@@ -84,8 +84,12 @@ class Vector3(Tuple):
             print("Division by zero! Returning zero vector...")
             return Vector3(0, 0, 0)
 
+    @staticmethod
+    def dot4(a, b):
+        return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w
+
     def __repr__(self):
-        return f'Vector3({self.x}, {self.y}, {self.z})'
+        return f'Vector3({self.x}, {self.y}, {self.z}, {self.w})'
 
 
 """-------------------------------------------Color------------------------------------------------------------------"""
@@ -140,22 +144,33 @@ class Ray:
 """-------------------------------------------Matrices---------------------------------------------------------------"""
 
 
-class Matrix3X3:
-    def __init__(self, row1, row2, row3):
+class Matrix4X4:
+    def __init__(self, row1=Vector3.zeros(), row2=Vector3.zeros(), row3=Vector3.zeros(), row4=Vector3(0, 0, 0, 1)):
         self.row1 = row1
         self.row2 = row2
         self.row3 = row3
+        self.row4 = row4
+        self.column1 = Vector3(row1.x, row2.x, row3.x, row4.x)
+        self.column2 = Vector3(row1.y, row2.y, row3.y, row4.y)
+        self.column3 = Vector3(row1.z, row2.z, row3.z, row4.z)
+        self.column4 = Vector3(row1.w, row2.w, row3.w, row4.w)
 
     @staticmethod
     def mulVector3(m, v):
-        x = Vector3.dot(v, m.row1)
-        y = Vector3.dot(v, m.row2)
-        z = Vector3.dot(v, m.row3)
-
-        return Vector3(x, y, z)
+        return Vector3(Vector3.dot4(v, m.row1), Vector3.dot4(v, m.row2), Vector3.dot4(v, m.row3))
 
     @staticmethod
-    def angleAxis3x3(angle, axis):
+    def mulMat(a, b):
+        r1 = Vector3(Vector3.dot4(a.row1, b.column1), Vector3.dot4(a.row1, b.column2), Vector3.dot4(a.row1, b.column3),
+                     Vector3.dot4(a.row1, b.column4))
+        r2 = Vector3(Vector3.dot4(a.row2, b.column1), Vector3.dot4(a.row2, b.column2), Vector3.dot4(a.row2, b.column3),
+                     Vector3.dot4(a.row2, b.column4))
+        r3 = Vector3(Vector3.dot4(a.row3, b.column1), Vector3.dot4(a.row3, b.column2), Vector3.dot4(a.row3, b.column3),
+                     Vector3.dot4(a.row3, b.column4))
+        return Matrix4X4(r1, r2, r3)
+
+    @staticmethod
+    def rotationMat(angle, axis):
         s = math.sin(angle)
         c = math.cos(angle)
 
@@ -164,16 +179,22 @@ class Matrix3X3:
         y = axis.y
         z = axis.z
 
-        return Matrix3X3(Vector3(t * x * x + c, t * x * y - s * z, t * x * z + s * y),
-                         Vector3(t * x * y + s * z, t * y * y + c, t * y * z - s * x),
-                         Vector3(t * x * z - s * y, t * y * z + s * x, t * z * z + c))
+        return Matrix4X4(Vector3(t * x * x + c, t * x * y - s * z, t * x * z + s * y, 0),
+                         Vector3(t * x * y + s * z, t * y * y + c, t * y * z - s * x, 0),
+                         Vector3(t * x * z - s * y, t * y * z + s * x, t * z * z + c, 0))
+
+    @staticmethod
+    def translationMat(translation):
+        return Matrix4X4(Vector3(1, 0, 0, translation.x), Vector3(0, 1, 0, translation.y),
+                         Vector3(0, 0, 1, translation.z))
+
+    @staticmethod
+    def scalingMat(scaling):
+        return Matrix4X4(Vector3(scaling.x, 0, 0, 0), Vector3(0, scaling.y, 0, 0), Vector3(0, 0, scaling.z, 0))
+
+    @staticmethod
+    def indentityMat():
+        return Matrix4X4(Vector3(1, 0, 0, 0), Vector3(0, 1, 0, 0), Vector3(0, 0, 1, 0))
 
     def __repr__(self):
-        return f'Matrix:\n{self.row1},\n{self.row2},\n{self.row3}'
-
-
-class RotationMatrixZ(Matrix3X3):
-    def __init__(self, theta):
-        super().__init__(Vector3(math.cos(theta), -math.sin(theta), 0),
-                         Vector3(math.sin(theta), math.cos(theta), 0),
-                         Vector3(0, 0, 1))
+        return f'Matrix:[\n{self.row1}, \n{self.row2}, \n{self.row3}, \n{self.row4}]'
