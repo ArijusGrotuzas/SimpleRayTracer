@@ -67,9 +67,9 @@ def spherical_map(self, intersection):
 
     return u, v
 ```
-![alt text](https://github.com/ArijusGrotuzas/SimpleRayTracer/blob/main/results/image.png)
+![alt text](https://github.com/ArijusGrotuzas/SimpleRayTracer/blob/main/results/combined/image.png)
 
 ## Soft shadows
 >`16 shadow spp`
 
-![alt text](https://github.com/ArijusGrotuzas/SimpleRayTracer/blob/main/results/image2.png)
+![alt text](https://github.com/ArijusGrotuzas/SimpleRayTracer/blob/main/results/shadow/shadow_mask.png)
