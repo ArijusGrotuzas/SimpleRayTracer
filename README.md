@@ -1,7 +1,7 @@
 # Description
 Simple raytracer that renders basic shapes in Python.
 
-# Tabel of contents
+## Tabel of contents
 - [Sphere intersection](#Sphere-ray-intersection)
 - [Plane intersection](#Plane-ray-intersection)
 - [Spherical texture mapping](#Spherical-texture-mapping)
