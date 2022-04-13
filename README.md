@@ -13,7 +13,7 @@ The definition of the a sphere is given by:
 
 ![sphere](https://latex.codecogs.com/svg.image?\left\|&space;x&space;-&space;c\right\|&space;=&space;r)
 
-where `x` is an arbitrary point on a sphere, `c` is a center of the sphere and `r` is the radius. Since `x` is a point on a sphere, we can substitute with a ray definition:
+where `x` is an arbitrary point on a sphere, `c` is a center of the sphere and `r` is the radius. Since `x` is a point on a sphere, we can substitute it with a ray definition:
 
 ![ray-sphere](https://latex.codecogs.com/svg.image?\left\|&space;o&space;&plus;&space;dt&space;-&space;c\right\|^2&space;=&space;r^2)
 
