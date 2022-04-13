@@ -1,5 +1,5 @@
 # Description
-Simple raytracer that renders basic shapes in Python.
+Niave implementation of a simple raytracer that renders basic shapes in Python.
 
 ## Tabel of contents
 - [Sphere intersection](#Sphere-ray-intersection)
@@ -54,6 +54,22 @@ def calculate_intersection(self, ray):
 ```
 
 ## Plane-ray intersection
+
+We can define a plane by a surface normal vector `n`, which describes planes orientation, and a point on a plane `p`, which describes its translation. If we take an arbitrary point `x`, then the `distance` between the point and the plane is defined as follows:
+
+![distance](https://latex.codecogs.com/svg.image?distance&space;=&space;\left\|&space;(x&space;-&space;s)&space;\cdot&space;n&space;\right\|)
+
+When `distance = 0` that means point `x` resides on the plane. We can substitute point `x` with a ray definition, and set the distance equal to 0, to get the following formula:
+
+![intersection](https://latex.codecogs.com/svg.image?\left&space;(&space;o&space;&plus;&space;dt&space;-&space;s\right&space;)&space;\cdot&space;n&space;=&space;0)
+
+since the distance is set to 0 the absolute value becomes irrelevant. If we solve for `t` we get the following:
+
+![dr](https://latex.codecogs.com/svg.image?t&space;=&space;\frac{\left&space;(&space;s&space;-&space;o&space;\right&space;)&space;\cdot&space;n}{d&space;\cdot&space;n})
+
+this will give us the point of intersection on the plane. However if the angle is perpendicular to the ray direction, the resulting formula would give us division by a zero, therefore we can first find the angle between the plane normal and the direction of the ray.
+
+>`Python example`
 
 ```Python
 # Calculates intersection with an infinite plane
