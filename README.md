@@ -9,6 +9,28 @@ Simple raytracer that renders basic shapes in Python.
 
 ## Sphere-ray intersection
 
+The definition of the a sphere is given by:
+
+![sphere](https://latex.codecogs.com/svg.image?\left\|&space;x&space;-&space;c\right\|&space;=&space;r)
+
+where `x` is an arbitrary point on a sphere, `c` is a center of the sphere and `r` is the radius. Since `x` is a point on a sphere, we can substitute with a ray definition:
+
+![ray-sphere](https://latex.codecogs.com/svg.image?\left\|&space;o&space;&plus;&space;dt&space;-&space;c\right\|^2&space;=&space;r^2)
+
+where `o` is the origin of the ray, `d` is a unit vector that describes direction of the ray, and `t` is a scalar that describes a point along the ray. If we solve for `t` we get:
+
+![a](https://latex.codecogs.com/svg.image?a&space;=&space;\left\|&space;d\right\|^2&space;=&space;1)
+
+![b](https://latex.codecogs.com/svg.latex?b%20=%202d%20\cdot%20(o%20-%20c))
+
+![c](https://latex.codecogs.com/svg.latex?c%20=%20\left\|%20o%20-%20c\right\|^2%20-%20r^2)
+
+![discriminant](https://latex.codecogs.com/svg.image?\Delta&space;=&space;b^2&space;-&space;4ac)
+
+If we compute the discriminant ![delta](https://latex.codecogs.com/svg.image?\Delta) we can determine if the ray intersects the sphere, a positive ![delta](https://latex.codecogs.com/svg.image?\Delta) means that ray intersects the sphere, otherwise the ray misses the sphere. Since `d` is a unit vector we do not need to compute `a`. Furthermore, we can also derive a point of intersection by calculating coefficients `x1` and `x2`.
+
+>`Python example`
+
 ```Python
 # Calculates intersection between a sphere and a ray
 def calculate_intersection(self, ray):
