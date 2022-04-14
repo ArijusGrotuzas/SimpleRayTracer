@@ -1,5 +1,5 @@
 # Description
-Niave implementation of a simple raytracer that renders basic shapes in Python.
+A naive implementation of a simple raytracer that renders basic shapes in Python.
 
 ## Tabel of contents
 - [Sphere intersection](#Sphere-ray-intersection)
@@ -17,7 +17,7 @@ where `x` is an arbitrary point on a sphere, `c` is a center of the sphere and `
 
 ![ray-sphere](https://latex.codecogs.com/svg.image?\left\|&space;o&space;&plus;&space;dt&space;-&space;c\right\|^2&space;=&space;r^2)
 
-where `o` is the origin of the ray, `d` is a unit vector that describes direction of the ray, and `t` is a scalar that describes a point along the ray. If we solve for `t` we get:
+where `o` is the origin of the ray, `d` is a unit vector that describes the direction of the ray, and `t` is a scalar that describes a point along the ray. If we solve for `t` we get:
 
 ![a](https://latex.codecogs.com/svg.image?a&space;=&space;\left\|&space;d\right\|^2&space;=&space;1)
 
@@ -27,7 +27,7 @@ where `o` is the origin of the ray, `d` is a unit vector that describes directio
 
 ![discriminant](https://latex.codecogs.com/svg.image?\Delta&space;=&space;b^2&space;-&space;4ac)
 
-If we compute the discriminant ![delta](https://latex.codecogs.com/svg.image?\Delta) we can determine if the ray intersects the sphere, a positive ![delta](https://latex.codecogs.com/svg.image?\Delta) means that ray intersects the sphere, otherwise the ray misses the sphere. Since `d` is a unit vector we do not need to compute `a`. Furthermore, we can also derive a point of intersection by calculating coefficients `x1` and `x2`.
+If we compute the discriminant![delta](https://latex.codecogs.com/svg.image?\Delta) we can determine if the ray intersects the sphere, a positive ![delta](https://latex.codecogs.com/svg.image?\Delta) means that the ray intersects the sphere, otherwise the ray misses the sphere. Since `d` is a unit vector we do not need to compute `a`. Furthermore, we can also derive a point of intersection by calculating coefficients `x1` and `x2`.
 
 >`Python example`
 
@@ -55,7 +55,7 @@ def calculate_intersection(self, ray):
 
 ## Plane-ray intersection
 
-We can define a plane by a surface normal vector `n`, which describes planes orientation, and a point on a plane `p`, which describes its translation. If we take an arbitrary point `x`, then the `distance` between the point and the plane is defined as follows:
+We can define a plane by a surface normal vector `n`, which describes plane's orientation, and a point on a plane `p`, which describes its translation. If we take an arbitrary point `x`, then the `distance` between the point and the plane is defined as follows:
 
 ![distance](https://latex.codecogs.com/svg.image?distance&space;=&space;\left\|&space;(x&space;-&space;s)&space;\cdot&space;n&space;\right\|)
 
@@ -85,14 +85,41 @@ def calculate_intersection(self, ray):
         return None
 ```
 ## Spherical texture mapping
+
+To texture a sphere, we can derive latitude ![phi](https://latex.codecogs.com/svg.image?\phi) and longitude ![theta](https://latex.codecogs.com/svg.image?\theta) of a 3D point on a sphere, and then use these values as `u` and `v` texture coordinates. To do so we need to define two unit-length vectors `Vn` and `Ve` that point in the direction of the north pole and the equator, the vectors can have arbitrary directions, however, the mapping will depend on their direction. We then find the unit-length vector `Vp`, which points from the center of the sphere to the point we are coloring. Since the dot-product of two unit-length vectors is equal to a `cosine` of an angle between them, we can simply find the latitude as follows:
+
+![latitude](https://latex.codecogs.com/svg.image?\phi&space;=&space;\arccos{(V_n&space;\cdot&space;V_p)})
+
+We can derive longitude the same way, additionaly we also need to divide the angle between the `Ve` and `Vp` by ![phi](https://latex.codecogs.com/svg.image?\phi):
+
+![longitude](https://latex.codecogs.com/svg.image?\theta&space;=&space;\frac{\arccos{(V_p&space;\cdot&space;V_e)}}{\sin(\phi)}&space;\cdot&space;\frac{1}{2\pi}&space;)
+
+We can also divide the angle by ![2pi](https://latex.codecogs.com/svg.image?2\pi) to convert `u` to the range from 0 to 0.5, since ![theta](https://latex.codecogs.com/svg.image?\theta) ranges from 0 to ![positivepi](https://latex.codecogs.com/svg.image?\pi), and since the dot-product cannot tell us on which side of equator vector `Ve` the point is, we can derive a new vector, orthogonal to the vectors `Ve` and `Vn` and check the angle between it and the vector `Vp`:
+
+![bl](https://latex.codecogs.com/svg.image?\alpha&space;=&space;V_p&space;\cdot&space;(V_n&space;\times&space;V_e))
+
+We then use the angle ![alpha](https://latex.codecogs.com/svg.image?\alpha) to get the texture coordinate `u`:
+
+![piecewise](https://user-images.githubusercontent.com/50104866/163346416-065b5a6c-dc28-4a4f-83b7-49d3f40f168e.png)
+
+>`Example image`
+
+![alt text](https://github.com/ArijusGrotuzas/SimpleRayTracer/blob/main/results/combined/image.png)
+
+>`Python example`
+
 ```Python
 # Returns a u, v coordinates given a point on a sphere
 def spherical_map(self, intersection):
+    
+    # Define vectors Vn and Ve
     pole = Vector3(0, 1, 0)
     equator = Vector3(-1, 0, 0)
 
+    # Get vector Vp
     normal = self.normal(intersection)
-
+    
+    # Get the angle between V_n and V_p
     phi = math.acos(Vector3.dot(pole, normal))
     v = phi / math.pi
 
@@ -105,7 +132,6 @@ def spherical_map(self, intersection):
 
     return u, v
 ```
-![alt text](https://github.com/ArijusGrotuzas/SimpleRayTracer/blob/main/results/combined/image.png)
 
 ## Soft shadows
 >`16 shadow spp`
