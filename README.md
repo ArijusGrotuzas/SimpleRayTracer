@@ -2,10 +2,9 @@
 A naive implementation of a simple raytracer that renders basic shapes in Python.
 
 ## Tabel of contents
-- [Sphere intersection](#Sphere-ray-intersection)
-- [Plane intersection](#Plane-ray-intersection)
+- [Sphere-ray intersection](#Sphere-ray-intersection)
+- [Plane-ray intersection](#Plane-ray-intersection)
 - [Spherical texture mapping](#Spherical-texture-mapping)
-- [Soft shadows](#Soft-shadows)
 
 ## Sphere-ray intersection
 
@@ -132,8 +131,3 @@ def spherical_map(self, intersection):
 
     return u, v
 ```
-
-## Soft shadows
->`16 shadow spp`
-
-![alt text](https://github.com/ArijusGrotuzas/SimpleRayTracer/blob/main/results/shadow/shadow_mask.png)
