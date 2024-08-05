@@ -1,3 +1,5 @@
+from abc import abstractmethod
+
 from .geometry import *
 
 """-------------------------------------------Shapes-----------------------------------------------------------------"""
@@ -8,14 +10,25 @@ class Transform:
         self.position = position
         self.rotation = rotation
         self.scale = scale
-        self.modelMat = Matrix4X4.mul_mat(Matrix4X4.translation_mat(position),
-                                          Matrix4X4.mul_mat(Matrix4X4.rotation_mat(rotation.y, Vector3(0, 1, 0)),
-                                                            Matrix4X4.scaling_mat(scale)))
+        self.rotation_mat = Matrix4X4.mul_mat(
+            Matrix4X4.rotation_mat(rotation.z, Vector3(0, 0, 1)),
+            Matrix4X4.mul_mat(
+                Matrix4X4.rotation_mat(rotation.y, Vector3(0, 1, 0)),
+                Matrix4X4.mul_mat(
+                    Matrix4X4.rotation_mat(rotation.x, Vector3(1, 0, 0)),
+                    Matrix4X4.scaling_mat(scale)
+                )
+            )
+        )
+        self.modelMat = Matrix4X4.mul_mat(
+            Matrix4X4.translation_mat(position),
+            self.rotation_mat
+        )
 
 
 class Shape(Transform):
     def __init__(self, position, rotation, material):
-        super().__init__(position, rotation, Vector3.zeros())
+        super().__init__(position, rotation, Vector3(1, 1, 1))
         self.material = material
 
     def phong(self, light, camera_position, intersection, normal):
@@ -29,20 +42,31 @@ class Shape(Transform):
         illumination = Color.add(Color.multiply(self.material.ambient, light.ambient), illumination)
 
         # diffuse
-        illumination = Color.add(Color.scalar_multiply(Vector3.dot(light_direction, normal),
-                                                       Color.multiply(self.material.diffuse, light.diffuse)),
-                                 illumination)
+        illumination = Color.add(
+            Color.scalar_multiply(
+                Vector3.dot(light_direction, normal),
+                Color.multiply(self.material.diffuse, light.diffuse)
+            ),
+            illumination
+        )
 
         # specular
         view_direction = Vector3.normalize(Vector3.subtract(camera_position, intersection))
         h = Vector3.normalize(Vector3.add(light.position, view_direction))
 
-        illumination = Color.add(Color.scalar_multiply(Vector3.dot(normal, h) ** (
-                self.material.shininess / 4), Color.multiply(self.material.specular, light.specular)), illumination)
-
-        # illumination = Color.scalar_multiply(attenuation, illumination)
+        illumination = Color.add(
+            Color.scalar_multiply(
+                Vector3.dot(normal, h) ** (self.material.shininess / 4),
+                Color.multiply(self.material.specular, light.specular)
+            ),
+            illumination
+        )
 
         return illumination
+
+    @abstractmethod
+    def normal(self, intersection):
+        pass
 
 
 class Sphere(Shape):
@@ -118,7 +142,7 @@ class Sphere(Shape):
 class Plane(Shape):
     def __init__(self, position, rotation, material):
         super().__init__(position, rotation, material)
-        self.surface_normal = Vector3.normalize(Vector3(0, 1, 0))
+        self.surface_normal = Vector3.normalize(Matrix4X4.mul_vector3(self.rotation_mat, Vector3(0, 1, 0)))
 
     def calculate_intersection(self, ray):
         denominator = Vector3.dot(Vector3.normalize(ray.direction), self.surface_normal)
@@ -135,7 +159,7 @@ class Plane(Shape):
         return self.surface_normal
 
     def color(self, light, camera_position, intersection):
-        return self.phong(light, camera_position, intersection, self.normal(intersection))
+        return self.phong(light, camera_position, intersection, self.surface_normal)
 
     def __repr__(self):
         return f'Plane({self.position}, {self.rotation}, {self.surface_normal})'
@@ -183,12 +207,12 @@ class Camera(Transform):
 
 class Material:
     def __init__(
-        self,
-        ambient=Color.white(),
-        diffuse=Color.white(),
-        specular=Color.white(),
-        shininess=Color.white(),
-        texture=None
+            self,
+            ambient=Color.white(),
+            diffuse=Color.white(),
+            specular=Color.white(),
+            shininess=Color.white(),
+            texture=None
     ):
         self.ambient = ambient
         self.diffuse = diffuse

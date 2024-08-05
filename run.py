@@ -12,8 +12,8 @@ def main():
     earth_tex = np.asarray(earth_texture)
 
     """Define objects present in the scene"""
-    height, width = 255, 255
-    camera = Camera(Vector3(0, 0, 1.5), Vector3(0, deg2rad(0), 0), width, height, 1)
+    height, width = 125, 125
+    camera = Camera(Vector3(0, 0, 1.5), Vector3.zeros(), width, height, 1)
 
     light = PointLight(
         Vector3(5, 5, 5),
@@ -33,7 +33,7 @@ def main():
     )
 
     objects = [
-        Sphere(Vector3(0, 0, 0), Vector3(0, deg2rad(250), 0), 1, mat),
+        Sphere(Vector3(0, 0, 0), Vector3.zeros(), 1, mat),
         Plane(Vector3(0, -1, 0), Vector3.zeros(), mat)
     ]
 
