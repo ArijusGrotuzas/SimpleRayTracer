@@ -156,11 +156,11 @@ class Matrix4X4:
         self.column4 = Vector3(row1.w, row2.w, row3.w, row4.w)
 
     @staticmethod
-    def mulVector3(m, v):
+    def mul_vector3(m, v):
         return Vector3(Vector3.dot4(v, m.row1), Vector3.dot4(v, m.row2), Vector3.dot4(v, m.row3))
 
     @staticmethod
-    def mulMat(a, b):
+    def mul_mat(a, b):
         r1 = Vector3(Vector3.dot4(a.row1, b.column1), Vector3.dot4(a.row1, b.column2), Vector3.dot4(a.row1, b.column3),
                      Vector3.dot4(a.row1, b.column4))
         r2 = Vector3(Vector3.dot4(a.row2, b.column1), Vector3.dot4(a.row2, b.column2), Vector3.dot4(a.row2, b.column3),
@@ -170,7 +170,7 @@ class Matrix4X4:
         return Matrix4X4(r1, r2, r3)
 
     @staticmethod
-    def rotationMat(angle, axis):
+    def rotation_mat(angle, axis):
         s = math.sin(angle)
         c = math.cos(angle)
 
@@ -184,16 +184,16 @@ class Matrix4X4:
                          Vector3(t * x * z - s * y, t * y * z + s * x, t * z * z + c, 0))
 
     @staticmethod
-    def translationMat(translation):
+    def translation_mat(translation):
         return Matrix4X4(Vector3(1, 0, 0, translation.x), Vector3(0, 1, 0, translation.y),
                          Vector3(0, 0, 1, translation.z))
 
     @staticmethod
-    def scalingMat(scaling):
+    def scaling_mat(scaling):
         return Matrix4X4(Vector3(scaling.x, 0, 0, 0), Vector3(0, scaling.y, 0, 0), Vector3(0, 0, scaling.z, 0))
 
     @staticmethod
-    def indentityMat():
+    def identity_mat():
         return Matrix4X4(Vector3(1, 0, 0, 0), Vector3(0, 1, 0, 0), Vector3(0, 0, 1, 0))
 
     def __repr__(self):

@@ -1,4 +1,4 @@
-from geometry import *
+from .geometry import *
 
 """-------------------------------------------Shapes-----------------------------------------------------------------"""
 
@@ -8,9 +8,9 @@ class Transform:
         self.position = position
         self.rotation = rotation
         self.scale = scale
-        self.modelMat = Matrix4X4.mulMat(Matrix4X4.translationMat(position),
-                                         Matrix4X4.mulMat(Matrix4X4.rotationMat(rotation.y, Vector3(0, 1, 0)),
-                                                          Matrix4X4.scalingMat(scale)))
+        self.modelMat = Matrix4X4.mul_mat(Matrix4X4.translation_mat(position),
+                                          Matrix4X4.mul_mat(Matrix4X4.rotation_mat(rotation.y, Vector3(0, 1, 0)),
+                                                            Matrix4X4.scaling_mat(scale)))
 
 
 class Shape(Transform):
@@ -35,9 +35,9 @@ class Shape(Transform):
 
         # specular
         view_direction = Vector3.normalize(Vector3.subtract(camera_position, intersection))
-        H = Vector3.normalize(Vector3.add(light.position, view_direction))
+        h = Vector3.normalize(Vector3.add(light.position, view_direction))
 
-        illumination = Color.add(Color.scalar_multiply(Vector3.dot(normal, H) ** (
+        illumination = Color.add(Color.scalar_multiply(Vector3.dot(normal, h) ** (
                 self.material.shininess / 4), Color.multiply(self.material.specular, light.specular)), illumination)
 
         # illumination = Color.scalar_multiply(attenuation, illumination)
@@ -96,20 +96,20 @@ class Sphere(Shape):
     def color(self, light, camera_position, intersection):
         u, v = self.spherical_map(intersection)
         tex = self.material.texture
+        col = Color.black()
 
-        height, width, channels = tex.shape
+        if tex is not None:
+            height, width, channels = tex.shape
 
-        y = int(v * (height - 1))
-        x = int(u * (width - 1))
+            y = int(v * (height - 1))
+            x = int(u * (width - 1))
 
-        val = tex[y, x] / 256
-        col = Color(val[0], val[1], val[2])
+            val = tex[y, x] / 256
+            col = Color(val[0], val[1], val[2])
 
         illumination = self.phong(light, camera_position, intersection, self.normal(intersection))
 
-        col = Color.add(illumination, col)
-
-        return col
+        return Color.add(illumination, col)
 
     def __repr__(self):
         return f'Sphere({self.position}, {self.rotation}, {self.radius})'
@@ -169,18 +169,27 @@ class DirectionalLight(Light):
 class Camera(Transform):
     def __init__(self, position, rotation, width, height, fov):
         super().__init__(position, rotation, Vector3(fov, fov, 1))
-        self.center = Matrix4X4.mulVector3(self.modelMat, Vector3.zeros())
+        self.center = Matrix4X4.mul_vector3(self.modelMat, Vector3.zeros())
         self.left = Vector3(-1, 0, -1)
         self.right = Vector3(1, 0, -1)
         self.top = Vector3(0, 1 / (float(width) / height), -1)
         self.bottom = Vector3(0, -1 / (float(width) / height), -1)
+        self.width = width
+        self.height = height
 
 
 """-------------------------------------------Material---------------------------------------------------------------"""
 
 
 class Material:
-    def __init__(self, ambient, diffuse, specular, shininess, texture):
+    def __init__(
+        self,
+        ambient=Color.white(),
+        diffuse=Color.white(),
+        specular=Color.white(),
+        shininess=Color.white(),
+        texture=None
+    ):
         self.ambient = ambient
         self.diffuse = diffuse
         self.specular = specular
