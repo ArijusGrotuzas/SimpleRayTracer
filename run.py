@@ -12,7 +12,7 @@ def main():
     earth_tex = np.asarray(earth_texture)
 
     """Define objects present in the scene"""
-    height, width = 125, 125
+    height, width = 255, 255
     camera = Camera(Vector3(0, 0, 1.5), Vector3.zeros(), width, height, 1)
 
     light = PointLight(
@@ -37,7 +37,7 @@ def main():
         Plane(Vector3(0, -1, 0), Vector3.zeros(), mat)
     ]
 
-    image = render(objects, light, camera)
+    image = render(objects, light, camera, shadow_samples=5)
 
     plt.imshow(image, interpolation='nearest')
     plt.show()

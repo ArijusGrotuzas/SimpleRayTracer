@@ -93,7 +93,7 @@ class Sphere(Shape):
             if x1 > 0 and x2 > 0:  # Check if intersects
                 return min(x1, x2)
 
-        return None
+        return math.inf
 
     # Returns the surface normal specified on any point of the sphere
     def normal(self, intersection):
@@ -153,7 +153,7 @@ class Plane(Shape):
             if t >= 0:
                 return t
 
-        return None
+        return math.inf
 
     def normal(self, intersection):
         return self.surface_normal
